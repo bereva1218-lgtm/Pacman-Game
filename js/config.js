@@ -1,0 +1,1 @@
+/** Configuración del juego, constantes del juego VALE*/

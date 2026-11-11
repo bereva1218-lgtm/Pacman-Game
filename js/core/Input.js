@@ -1,0 +1,1 @@
+/*p1 VALERIA Estructura de entrada del juego , teclas o movimientos teclado*/
