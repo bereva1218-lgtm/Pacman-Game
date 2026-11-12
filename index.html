@@ -19,10 +19,21 @@ SANTIAGO -- P3
     }
     }
     </script>
+    <!-- Mínimo para que el canvas ocupe toda la pantalla (el resto del CSS es de Laura) -->
+    <style>
+        html, body { margin: 0; height: 100%; overflow: hidden; background: #05050f; }
+        #game canvas { display: block; }
+    </style>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
+    <!-- Aquí P1 mete el canvas de Three.js -->
+    <div id="game"></div>
+    <!-- Aquí P2 pone HUD y pantallas (menú, pausa, game over, victoria) -->
+    <div id="ui"></div>
 
+    <script type="module" src="js/main.js"></script>
 </body>
 
 </html>
