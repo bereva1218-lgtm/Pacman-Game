@@ -1,8 +1,7 @@
 <!--
-VALERIA -- P1
-LAURA -- P2
-SANTIAGO -- P3
-
+P3 — Página de prueba de los fantasmas.
+Se abre aparte de index.html y no toca main.js.
+Mismo importmap que index.html: si allá se cambia la versión de Three, cambiarla aquí también.
 -->
 <!DOCTYPE html>
 <html lang="es">
@@ -10,7 +9,7 @@ SANTIAGO -- P3
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PACMAN SCAPE ROOM</title>
+    <title>PACMAN SCAPE ROOM · Prueba de fantasmas</title>
     <script type="importmap">
     {
     "imports": {
@@ -19,21 +18,31 @@ SANTIAGO -- P3
     }
     }
     </script>
-    <!-- Mínimo para que el canvas ocupe toda la pantalla (el resto del CSS es de Laura) -->
     <style>
         html, body { margin: 0; height: 100%; overflow: hidden; background: #05050f; }
         #game canvas { display: block; }
+
+        #ayuda {
+            position: fixed;
+            left: 8px;
+            bottom: 8px;
+            color: #fff;
+            background: rgba(0, 0, 0, .6);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font: 12px/1.45 monospace;
+            pointer-events: none;
+            z-index: 10;
+        }
     </style>
     <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
-    <!-- Aquí P1 mete el canvas de Three.js -->
     <div id="game"></div>
-    <!-- Aquí P2 pone HUD y pantallas (menú, pausa, game over, victoria) -->
-    <div id="ui"></div>
+    <div id="ayuda">WASD / flechas: mover &nbsp;·&nbsp; las teclas de prueba están en el panel de la derecha</div>
 
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/ghostTest.js"></script>
 </body>
 
 </html>
