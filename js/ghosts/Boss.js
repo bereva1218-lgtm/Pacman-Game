@@ -42,12 +42,15 @@ export const BOSS = {
     explosionTime: 1.6,
     ballRadius: 0.45,
 
-    bounceSpeed: 8.0,           // casillas por segundo (Pac-Man va a 5)
+    bounceSpeed: 11.0,          // casillas por segundo al empezar (Pac-Man va a 5)
+    bounceSpeedMax: 15.0,       // acelera hasta aquí al final del ataque
+    bounceMinAngle: 25,         // grados mínimos respecto a los ejes: nunca rebota
+    bounceMaxAngle: 65,         //   casi recto, así recorre todo el mapa en diagonal
     chaseSpeed: 2.6,
     rainChaseSpeed: 1.8,        // "pero más lento"
     floorChaseSpeed: 2.2,
 
-    splinters: 5,
+    splinters: 8,
     splinterSpeed: 2.9,
     splinterSize: 0.9,
     splitRadius: 3.5,           // a qué distancia del jefe aparecen
@@ -57,13 +60,17 @@ export const BOSS = {
     splinterSeparation: 2.2,    // a esta distancia (casillas) se empujan entre sí
     splinterSeparationForce: 1.6,
 
-    rainEvery: 0.55,
+    rainEvery: 0.08,            // una gota nueva cada 0,08 s (antes 0,55)
     rainWarn: 0.9,
-    rainFallTime: 0.45,
+    rainFallTime: 0.32,         // lo que tarda en caer (antes 0,45)
     rainRadius: 0.8,
     rainPuddle: 1.2,
 
     floorFallDelay: 0.35,       // lo que tarda en caerse la casilla que dejaste
+    floorShrinkStart: 1.5,      // s hasta que cae el primer anillo del borde
+    floorShrinkEnd: 1.0,        // s antes del final en que cae el último anillo
+    floorShrinkWarn: 1.2,       // s que parpadea en rojo un anillo antes de caer
+    floorMinSize: 3,            // casillas desde el centro que NUNCA se caen
     contactRadius: 1.4,         // el jefe es grande
 };
 
@@ -271,11 +278,18 @@ export class BossStage {
 
         const a = this.attack;
         if (a.id === 'rebote') {
-            const ang = Math.random() * Math.PI * 2;
-            this.vel.set(Math.cos(ang), 0, Math.sin(ang))
-                .multiplyScalar(BOSS.bounceSpeed * this.maze.tile);
+            this.vel.set(Math.random() < 0.5 ? -1 : 1, 0, Math.random() < 0.5 ? -1 : 1);
+            this._setBounceDir(BOSS.bounceSpeed);
         }
         if (a.id === 'division') this._spawnSplinters();
+        if (a.id === 'piso') {
+            // Cuántos anillos del borde se pueden tirar dejando el centro libre
+            const half = Math.floor((Math.min(this.maze.cols, this.maze.rows) - 1) / 2);
+            this._ringsMax = Math.max(0, half - BOSS.floorMinSize);
+            const span = a.dur - BOSS.floorShrinkStart - BOSS.floorShrinkEnd;
+            this._ringEvery = this._ringsMax > 1 ? span / (this._ringsMax - 1) : 0;
+            this._ringNext = 1;
+        }
 
         this.bus.emit('boss:ataque', {
             n: this.attackIndex + 1, id: a.id, nombre: a.nombre, duracion: a.dur,
@@ -311,9 +325,11 @@ export class BossStage {
      * CÓMO FUNCIONA
      * El jefe sale disparado en una dirección al azar y rebota contra las
      * cuatro paredes de la arena, como una bola de billar. No persigue a
-     * Pac-Man: va a lo suyo, pero a 8 casillas por segundo, bastante más
-     * rápido que él (que va a 5), así que no se le puede dejar atrás
-     * corriendo en línea recta. Pac-Man solo tiene que aguantar los 10 s.
+     * Pac-Man: va a lo suyo, empezando a 11 casillas por segundo y
+     * acelerando hasta 15 al final (Pac-Man va a 5). En cada rebote sortea
+     * un ángulo diagonal nuevo (entre 25° y 65°), así nunca se queda yendo
+     * casi recto por una franja y termina pasando por todo el mapa.
+     * Pac-Man solo tiene que aguantar los 10 s.
      *
      * QUÉ USA
      * - La dirección inicial se sortea en _nextAttack(), en la rama
@@ -336,12 +352,30 @@ export class BossStage {
         const min = this.maze.tile * 1.5;
         const maxX = this.maze.tile * (this.maze.cols - 1.5);
         const maxZ = this.maze.tile * (this.maze.rows - 1.5);
-        if (p.x < min) { p.x = min; this.vel.x *= -1; }
-        if (p.x > maxX) { p.x = maxX; this.vel.x *= -1; }
-        if (p.z < min) { p.z = min; this.vel.z *= -1; }
-        if (p.z > maxZ) { p.z = maxZ; this.vel.z *= -1; }
+        let reboto = false;
+        if (p.x < min) { p.x = min; this.vel.x = Math.abs(this.vel.x); reboto = true; }
+        if (p.x > maxX) { p.x = maxX; this.vel.x = -Math.abs(this.vel.x); reboto = true; }
+        if (p.z < min) { p.z = min; this.vel.z = Math.abs(this.vel.z); reboto = true; }
+        if (p.z > maxZ) { p.z = maxZ; this.vel.z = -Math.abs(this.vel.z); reboto = true; }
+
+        // En cada rebote: ángulo nuevo al azar (para que no repita siempre la
+        // misma trayectoria y pase por todo el mapa) y un poco más rápido.
+        if (reboto) {
+            const k = Math.min(1, this.t / this.attack.dur);
+            this._setBounceDir(BOSS.bounceSpeed + (BOSS.bounceSpeedMax - BOSS.bounceSpeed) * k);
+        }
 
         this.group.rotation.y = Math.atan2(this.vel.x, this.vel.z);
+    }
+
+    /** Conserva el sentido (signos) de this.vel pero sortea un ángulo diagonal. */
+    _setBounceDir(speedTiles) {
+        const deg = BOSS.bounceMinAngle + Math.random() * (BOSS.bounceMaxAngle - BOSS.bounceMinAngle);
+        const ang = deg * Math.PI / 180;
+        const sx = Math.sign(this.vel.x) || 1;
+        const sz = Math.sign(this.vel.z) || 1;
+        this.vel.set(sx * Math.cos(ang), 0, sz * Math.sin(ang))
+            .multiplyScalar(speedTiles * this.maze.tile);
     }
 
     /* ---------------------------------------------------------------------
@@ -350,7 +384,7 @@ export class BossStage {
      * ---------------------------------------------------------------------
      *
      * CÓMO FUNCIONA
-     * El jefe se divide: el fantasma grande DESAPARECE y en su lugar quedan 5
+     * El jefe se divide: el fantasma grande DESAPARECE y en su lugar quedan 8
      * copias pequeñas repartidas en círculo a su alrededor. Durante los
      * primeros 0,9 s las copias salen disparadas hacia afuera para abrirse por
      * el mapa, y a partir de ahí persiguen a Pac-Man en línea recta. Cada una
@@ -405,7 +439,7 @@ export class BossStage {
      * CÓMO FUNCIONA
      * Cae ectoplasma del cielo mientras el jefe persigue a Pac-Man, pero más
      * lento que en los otros ataques (1,8 casillas/s) para que se pueda
-     * esquivar las dos cosas a la vez. Cada 0,55 s se elige una casilla libre
+     * esquivar las dos cosas a la vez. Cada 0,08 s se elige una casilla libre
      * al azar: primero se marca con un círculo que parpadea en el piso durante
      * 0,9 s, después cae la gota, y en el frame del impacto hace daño si
      * Pac-Man está dentro del radio. Luego queda un charco que se desvanece.
@@ -451,8 +485,12 @@ export class BossStage {
      * volver a pisar. Mientras tanto el jefe lo persigue. La casilla no se cae
      * en el momento de pisarla sino 0,35 s después de SALIR de ella, para que
      * dé tiempo a cruzarla. El peligro real no es el jefe: es encerrarse uno
-     * mismo dando vueltas sobre lo que ya rompió. Al terminar el ataque el
-     * piso se restaura entero.
+     * mismo dando vueltas sobre lo que ya rompió. Además el mapa se va
+     * haciendo más pequeño: cada poco tiempo el anillo exterior de casillas
+     * parpadea en rojo 1,2 s y se cae entero, hasta dejar solo el centro.
+     * Si Pac-Man sigue encima cuando cae, pierde una vida y vuelve a la
+     * casilla libre más cercana. Al terminar el ataque el piso se restaura
+     * entero.
      *
      * QUÉ USA
      * - _updateFallingFloor(dt), una vez por frame desde _updateAttack().
@@ -472,6 +510,11 @@ export class BossStage {
      *   aquí, porque deben seguir cayendo aunque el ataque ya haya acabado.
      * - ArenaFloor.restoreAll(), desde _clearAttack(), devuelve todas a su
      *   sitio y vuelve a marcarlas como pisables.
+     * - _updateShrink() lleva el encogimiento. Los tiempos se calculan en
+     *   _nextAttack(): cuántos anillos caben (_ringsMax, dejando floorMinSize
+     *   casillas en el centro) y cada cuánto cae uno (_ringEvery) para que el
+     *   último caiga justo antes del final. ArenaFloor guarda la "profundidad"
+     *   de cada casilla (distancia al borde): el anillo n son las de depth n.
      * ------------------------------------------------------------------- */
 
     _updateFallingFloor(dt) {
@@ -490,6 +533,49 @@ export class BossStage {
         for (const p of this._pending) p.t -= dt;
         for (const p of this._pending) if (p.t <= 0) this.floor.drop(p.col, p.row);
         this._pending = this._pending.filter((p) => p.t > 0);
+
+        this._updateShrink(t);
+    }
+
+    /** El mapa se encoge: cada cierto tiempo cae el anillo exterior entero. */
+    _updateShrink(playerTile) {
+        if (this._ringNext > this._ringsMax) return;
+
+        const ring = this._ringNext;
+        const dropAt = BOSS.floorShrinkStart + (ring - 1) * this._ringEvery;
+        const left = dropAt - this.t;
+
+        // Aviso: el anillo parpadea en rojo antes de caerse
+        if (left <= BOSS.floorShrinkWarn) {
+            this.floor.tintRing(ring, Math.sin(this.t * 20) > 0 ? 0xff3344 : null);
+        }
+        if (left > 0) return;
+
+        this.floor.dropRing(ring);
+        this._ringNext++;
+        this.bus.emit('boss:anillo', { n: ring, total: this._ringsMax });
+
+        // Si Pac-Man estaba encima del anillo, pierde una vida y vuelve dentro
+        if (this.floor.depth(playerTile.col, playerTile.row) <= ring) {
+            this._hurtPlayer('piso');
+            const safe = this._nearestWalkable(playerTile);
+            if (safe) {
+                this.bus.emit(PLAYER_TELEPORT, safe);
+                this._lastTile = KEY(safe.col, safe.row);
+            }
+        }
+    }
+
+    _nearestWalkable(from) {
+        let best = null, bestD = Infinity;
+        for (let row = 0; row < this.maze.rows; row++) {
+            for (let col = 0; col < this.maze.cols; col++) {
+                if (!this.maze.isWalkable(col, row)) continue;
+                const d = Math.abs(col - from.col) + Math.abs(row - from.row);
+                if (d < bestD) { bestD = d; best = { col, row }; }
+            }
+        }
+        return best;
     }
 
     /* ---------------------------------------------------------------------
@@ -798,7 +884,7 @@ class Splinter {
  * Una gota de ectoplasma. Es una máquina de estados de tres fases que
  * avanzan con su propio cronómetro this.t:
  *   'warn'   0,9 s   círculo parpadeando en el piso, aún no hace daño
- *   'fall'   0,45 s  la gota baja desde 7 casillas de altura
+ *   'fall'   0,32 s  la gota baja desde 7 casillas de altura
  *   'puddle' 1,2 s   charco que se desvanece, tampoco hace daño
  * El daño ocurre en UN solo frame: el del cambio de 'fall' a 'puddle'.
  *
@@ -917,19 +1003,33 @@ class ArenaFloor {
 
         const libres = maze.freeTiles();
         const geo = new THREE.BoxGeometry(maze.tile * 0.96, maze.tile * 0.2, maze.tile * 0.96);
-        const mat = new THREE.MeshStandardMaterial({ color: 0x2b2b4a, roughness: 0.9 });
+        // Material blanco: el color real va por instancia (setColorAt), así se
+        // puede pintar de rojo un anillo concreto antes de que se caiga.
+        const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 });
         this.mesh = new THREE.InstancedMesh(geo, mat, libres.length);
         this.mesh.receiveShadow = true;
 
         this._m = new THREE.Matrix4();
+        this._c = new THREE.Color();
+        this.baseColor = 0x2b2b4a;
         libres.forEach((t, i) => {
             const p = maze.tileToWorld(t.col, t.row);
             this._m.makeTranslation(p.x, -maze.tile * 0.1, p.z);
             this.mesh.setMatrixAt(i, this._m);
-            this.tiles.set(KEY(t.col, t.row), { index: i, x: p.x, z: p.z, y: -maze.tile * 0.1 });
+            this.mesh.setColorAt(i, this._c.setHex(this.baseColor));
+            this.tiles.set(KEY(t.col, t.row), {
+                index: i, col: t.col, row: t.row, x: p.x, z: p.z, y: -maze.tile * 0.1,
+                depth: this.depth(t.col, t.row),
+            });
         });
         this.mesh.instanceMatrix.needsUpdate = true;
+        this.mesh.instanceColor.needsUpdate = true;
         scene.add(this.mesh);
+    }
+
+    /** Distancia al borde de la arena: el borde es 0, el primer anillo libre 1… */
+    depth(col, row) {
+        return Math.min(col, row, this.maze.cols - 1 - col, this.maze.rows - 1 - row);
     }
 
     drop(col, row) {
@@ -941,18 +1041,35 @@ class ArenaFloor {
         return true;
     }
 
+    /** Tira todas las casillas del anillo n (las que tienen depth === n). */
+    dropRing(n) {
+        this.tintRing(n, null);
+        for (const t of this.tiles.values()) if (t.depth === n) this.drop(t.col, t.row);
+    }
+
+    /** Pinta el anillo n de un color (null = color normal). */
+    tintRing(n, hex) {
+        this._c.setHex(hex ?? this.baseColor);
+        for (const t of this.tiles.values()) {
+            if (t.depth === n && !t.falling) this.mesh.setColorAt(t.index, this._c);
+        }
+        this.mesh.instanceColor.needsUpdate = true;
+    }
+
     restoreAll() {
-        for (const [k, t] of this.tiles) {
+        this._c.setHex(this.baseColor);
+        for (const t of this.tiles.values()) {
+            this.mesh.setColorAt(t.index, this._c);
             if (!t.falling) continue;
             t.falling = false;
             t.y = -this.maze.tile * 0.1;
             this._m.makeTranslation(t.x, t.y, t.z);
             this.mesh.setMatrixAt(t.index, this._m);
-            const [c, r] = k.split(',').map(Number);
-            this.maze.setTile?.(c, r, 0);
+            this.maze.setTile?.(t.col, t.row, 0);
         }
         this.falling = [];
         this.mesh.instanceMatrix.needsUpdate = true;
+        this.mesh.instanceColor.needsUpdate = true;
     }
 
     update(dt) {
