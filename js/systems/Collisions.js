@@ -46,6 +46,10 @@ export class Collisions {
     }
 
     resolveContact(ghost) {
+        // Los clones son parte de la ilusión de Pinky: mientras la
+        // invisibilidad está activa no pueden detectar ni hacer daño a Pac-Man.
+        if (ghost.isClone && this.powers.has('invisibility')) return;
+
         // Nivel 5: la súper bola correcta lo encierra en su spawn
         if (this.powers.has('superball_' + ghost.name)) {
             ghost.lockInSpawn();
