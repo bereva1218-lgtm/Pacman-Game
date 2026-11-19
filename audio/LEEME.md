@@ -32,7 +32,6 @@ Formatos aceptados: `.mp3` (recomendado), `.ogg` o `.wav`. Ejemplo: `audio/picku
 
 | Archivo | Cuándo suena |
 |---|---|
-| `player_step` | Cada casilla que avanza (muy corto y suave; se repite mucho) |
 | `player_hit` | Un fantasma o ataque lo golpea |
 | `player_respawn` | Reaparece en su punto de inicio |
 | `player_fire` | Dispara la onda de energía (poder del nivel 4) |
@@ -55,7 +54,6 @@ Formatos aceptados: `.mp3` (recomendado), `.ogg` o `.wav`. Ejemplo: `audio/picku
 | Archivo | Cuándo suena |
 |---|---|
 | `ghost_spawn` | Aparecen los fantasmas al empezar el nivel |
-| `ghost_warn` | Aviso justo antes de un ataque especial (de cualquier fantasma) |
 | `ghost_hit` | Le pegas a un fantasma |
 | `ghost_defeated` | Fantasma derrotado (o encerrado con su súper bola, nivel 5) |
 
@@ -72,7 +70,7 @@ Los bloqueos (escudo, proyectil contra pared, golpe inmune) usan `shield_block`.
 | `boss_hit` | Golpeas al jefe |
 | `boss_defeated` | Jefe derrotado |
 
-**Total: 32 archivos** (6 de música + 26 efectos y jingles).
+**Total: 31 archivos** (6 de música + 25 efectos y jingles).
 
 Para añadir uno nuevo: ponlo en `SOUNDS` y enlázalo a un evento en `EVENT_SOUNDS`
 dentro de `js/systems/AudioManager.js` (o llama a `audio.play('nombre')`).

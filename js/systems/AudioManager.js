@@ -48,7 +48,6 @@ export const SOUNDS = {
     jingle_win: { vol: 0.9 },
 
     // --- Jugador ---
-    player_step: { vol: 0.35, cd: 0.12, vary: 0.06 },
     player_hit: { vol: 1 },
     player_respawn: { vol: 0.8, cd: 0.5 },
     player_fire: { vol: 0.8, vary: 0.04 },       // onda de energía (poder del nivel 4)
@@ -65,7 +64,6 @@ export const SOUNDS = {
 
     // --- Fantasmas ---
     ghost_spawn: { vol: 0.8 },
-    ghost_warn: { vol: 0.8, cd: 0.3 },           // aviso antes de cualquier ataque especial
     ghost_hit: { vol: 0.9, cd: 0.1 },            // le pegas a un fantasma
     ghost_defeated: { vol: 1 },                  // también al quedar encerrado con su súper bola
 
@@ -91,7 +89,6 @@ const EVENT_SOUNDS = {
     [EVENTS.PLAYER_RESPAWN]: 'player_respawn',
     [EVENTS.GHOST_DEFEATED]: 'ghost_defeated',
     'ghosts:ready': 'ghost_spawn',
-    'ghost:warn': 'ghost_warn',
     'ghost:hit': 'ghost_hit',
     'shield:blocked': 'shield_block',
     'projectile:blocked': 'shield_block',
@@ -295,8 +292,7 @@ export class AudioManager {
         bus.on(EVENTS.KEY_COLLECTED, ({ keys }) => { if (keys > 0) this.play('pickup_key'); });
 
 
-        // Pasos (solo jugando) y onda de energía (solo con el poder del nivel 4)
-        bus.on(EVENTS.PLAYER_TILE, () => { if (gameState.is(STATES.PLAYING)) this.play('player_step'); });
+        // Onda de energía (solo con el poder del nivel 4)
         bus.on(EVENTS.INPUT_FIRE, () => {
             if (gameState.is(STATES.PLAYING) && this.powers?.has('energy')) this.play('player_fire');
         });
