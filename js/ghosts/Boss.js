@@ -184,10 +184,12 @@ export class BossStage {
 
     _buildBoss() {
         this.group = new THREE.Group();
-        this.model = this.assets.get('blinky', { size: BOSS.size * this.maze.tile });
+        this.model = this.assets.get('boss', { size: BOSS.size * this.maze.tile });
+        const tintPlaceholder = this.assets.isPlaceholder('boss');
         this.model.traverse((o) => {
             if (!o.isMesh) return;
             o.material = o.material.clone();
+            if (!tintPlaceholder) return; // el modelo voxel ya trae sus colores
             o.material.color?.setHex(0x8e44ff);
             o.material.emissive?.setHex(0x3a0d66);
         });
@@ -814,12 +816,13 @@ class Splinter {
         this.outward = outward;
         this.speed = speed;
         this.scatter = BOSS.splinterScatter;
-        this.mesh = assets.get('blinky', { size: BOSS.splinterSize * maze.tile });
+        this.mesh = assets.get('boss', { size: BOSS.splinterSize * maze.tile });
         this.mesh.position.copy(pos);
+        const tintPlaceholder = assets.isPlaceholder('boss');
         this.mesh.traverse((o) => {
             if (!o.isMesh) return;
             o.material = o.material.clone();
-            o.material.color?.setHex(0x9b59ff);
+            if (tintPlaceholder) o.material.color?.setHex(0x9b59ff);
         });
         scene.add(this.mesh);
         this.scene = scene;
