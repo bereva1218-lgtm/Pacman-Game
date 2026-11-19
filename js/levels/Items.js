@@ -5,11 +5,14 @@
  *   key   → aparece al vencer al fantasma
  */
 
+import * as THREE from 'three';
+
 export const ITEM = Object.freeze({
     POWER: 'power',
     FAKE: 'fake',
     HINT: 'hint',
     KEY: 'key',
+    BOSS_BALL: 'bossBall',
 });
 
 const SIZE = { power: 0.6, fake: 0.6, hint: 0.45, key: 0.7 };
@@ -25,7 +28,22 @@ export class Item {
         this.data = data;
         this.scene = scene;
 
-        this.mesh = assets.get(modelKey, { size: SIZE[type] * maze.tile });
+        if (type === ITEM.BOSS_BALL) {
+            const color = data.color ?? 0xffffff;
+            this.mesh = new THREE.Mesh(
+                new THREE.SphereGeometry(maze.tile * 0.3, 16, 12),
+                new THREE.MeshStandardMaterial({
+                    color,
+                    emissive: color,
+                    emissiveIntensity: 0.75,
+                    roughness: 0.25,
+                    metalness: 0.1,
+                }),
+            );
+            this.ownsMeshResources = true;
+        } else {
+            this.mesh = assets.get(modelKey, { size: SIZE[type] * maze.tile });
+        }
         this.mesh.position.copy(maze.tileToWorld(col, row));
         this.baseY = 0.15;
         this.phase = Math.random() * Math.PI * 2; // para que no floten todos sincronizados
@@ -44,5 +62,9 @@ export class Item {
     dispose() {
         // No hacemos geometry.dispose(): las copias comparten geometría con el AssetLoader
         this.scene.remove(this.mesh);
+        if (this.ownsMeshResources) {
+            this.mesh.geometry.dispose();
+            this.mesh.material.dispose();
+        }
     }
 }

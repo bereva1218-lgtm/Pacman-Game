@@ -114,6 +114,7 @@ async function init() {
     };
     const stopBoss = () => { boss?.dispose(); boss = null; };
     bus.on('boss:fusion', startBoss);
+    bus.on('boss:victoria', () => gameState.set(STATES.WIN));
     bus.on(EVENTS.LEVEL_START, stopBoss);
 
     const ghosts = new GhostManager({ scene, maze, player, bus, assets, powers });

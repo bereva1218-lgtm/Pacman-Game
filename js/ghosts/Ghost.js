@@ -315,6 +315,7 @@ export class Ghost {
         this.locked = true;
         this.state = GHOST_STATE.PATRULLAR;
         this.placeAt(this.spawnTile);
+        this.group.visible = false;
         this.tint(0x444444);
         this.bus.emit('ghost:locked', { ghost: this.name });
     }

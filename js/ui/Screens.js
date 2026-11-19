@@ -160,9 +160,11 @@ export class Screens {
       this.escape = false;
       const [, theme = level.name] = level.name.split('—').map((t) => t.trim());
       this._queueCard({
-        kicker: `NIVEL ${index + 1} / ${LEVELS.length}`,
-        title: theme,
-        sub: `Busca: ${level.powerLabel}\nEnfrenta a ${level.ghost.toUpperCase()}`,
+        kicker: level.ghosts ? 'NIVEL 5 — ETAPA 1' : `NIVEL ${index + 1} / ${LEVELS.length}`,
+        title: level.ghosts ? 'Los cuatro fantasmas' : theme,
+        sub: level.ghosts
+          ? level.tip
+          : `Busca: ${level.powerLabel}\nEnfrenta a ${level.ghost.toUpperCase()}`,
         color: KEY_COLORS[index % KEY_COLORS.length],
         icon: GHOST_SVG,
         duration: 2.8,
@@ -178,6 +180,17 @@ export class Screens {
         color: KEY_COLORS[index % KEY_COLORS.length],
         icon: KEY_SVG,
         duration: CONFIG.LEVEL_COMPLETE_DELAY ?? 2.5,
+      });
+    });
+
+    this.bus.on('boss:etapa2', () => {
+      this._queueCard({
+        kicker: 'NIVEL FINAL',
+        title: 'El jefe',
+        sub: 'Esquiva sus ataques y recoge las súper bolas',
+        color: '#c28cff',
+        icon: GHOST_SVG,
+        duration: 2.8,
       });
     });
 

@@ -6,13 +6,13 @@
  *   3a. P3 emite GHOST_DEFEATED → aparece la llave donde cayó el fantasma
  *   3b. P2 emite POWER_EXPIRED sin haber vencido → el objeto reaparece en otro lugar
  *   4. Pacman recoge la llave → LEVEL_COMPLETE → siguiente nivel
- *   5. Con 4 llaves → se abre la salida → pisarla = WIN
+ *   5. Con 4 llaves → empieza el jefe final; derrotarlo = WIN
  *
  * Vidas: se pierde 1 si se acaba el tiempo (se reinicia el nivel) o si P3 emite PLAYER_HIT.
  */
 import { EVENTS, CONFIG } from '../config.js';
 import { STATES } from '../core/GameState.js';
-import { PLAYER_START } from '../world/mazeData.js';
+import { GHOST_SPAWNS, PLAYER_START } from '../world/mazeData.js';
 import { LEVELS, ESCAPE_TIME } from './levels.js';
 import { Item, ITEM } from './Items.js';
 
@@ -23,9 +23,15 @@ export class LevelManager {
         this.level = null;
         this.playerTile = { ...PLAYER_START };
         this.time = 0;
+        this.finalGhosts = [];
+        this.activeBossBall = null;
+        this.activeBossTarget = null;
+        this.bossBallTimer = 0;
 
         bus.on(EVENTS.PLAYER_TILE, (t) => this.onPlayerTile(t));
         bus.on(EVENTS.GHOST_DEFEATED, (d) => this.onGhostDefeated(d));
+        bus.on('ghost:locked', (d) => this.onFinalGhostLocked(d));
+        bus.on('boss:etapa2', () => this.startFinalBoss());
         bus.on(EVENTS.POWER_EXPIRED, (d) => this.onPowerExpired(d));
         bus.on(EVENTS.PLAYER_HIT, () => this.loseLife('hit'));
     }
@@ -147,6 +153,15 @@ export class LevelManager {
             case ITEM.POWER:
                 this.bus.emit(EVENTS.POWER_PICKED, { power: this.level.power, duration: this.level.powerDuration });
                 break;
+            case ITEM.BOSS_BALL:
+                this.activeBossBall = null;
+                this.activeBossTarget = item.data.ghost;
+                this.bus.emit(EVENTS.POWER_PICKED, {
+                    power: `superball_${item.data.ghost}`,
+                    duration: 999,
+                });
+                this.bus.emit('boss:ballCollected', { ghost: item.data.ghost });
+                break;
             case ITEM.FAKE:
                 this.bus.emit(EVENTS.FAKE_PICKED, {});
                 break;
@@ -175,6 +190,13 @@ export class LevelManager {
     }
 
     onPowerExpired({ power } = {}) {
+        if (this.phase === 'final-ghosts' &&
+            this.activeBossTarget &&
+            power === `superball_${this.activeBossTarget}`) {
+            this.activeBossTarget = null;
+            this.bossBallTimer = 1.5;
+            return;
+        }
         if (this.phase !== 'search' || this.ghostDefeated) return;
         if (power && power !== this.level.power) return;
         if (this.items.some((i) => i.type === ITEM.POWER)) return; // ya hay uno en el mapa
@@ -187,15 +209,92 @@ export class LevelManager {
         this.bus.emit(EVENTS.KEY_COLLECTED, { keys: this.gameState.keys });
 
         if (this.gameState.keys >= LEVELS.length) {
-            this.phase = 'escape';
-            this.timeLeft = ESCAPE_TIME;
-            this.exit.open();
-            this.bus.emit(EVENTS.EXIT_OPENED, {});
+            this.startFinalGhostStage();
         } else {
             this.transitionTimer = CONFIG.LEVEL_COMPLETE_DELAY;
             this.gameState.set(STATES.LEVEL_COMPLETE);
             this.bus.emit(EVENTS.LEVEL_COMPLETE, { index: this.levelIndex });
         }
+    }
+
+    startFinalGhostStage() {
+        this.clearItems();
+        this.gameState.levelIndex = LEVELS.length;
+        this.level = {
+            id: LEVELS.length + 1,
+            name: 'Nivel 5 — Los cuatro fantasmas',
+            ghost: 'los cuatro',
+            ghosts: ['blinky', 'pinky', 'inky', 'clyde'],
+            ghostSpawns: {
+                blinky: GHOST_SPAWNS.blinky,
+                pinky: GHOST_SPAWNS.pinky,
+                inky: GHOST_SPAWNS.inky,
+                clyde: GHOST_SPAWNS.clyde,
+            },
+            ghostSpawn: GHOST_SPAWNS.solo,
+            power: 'superball',
+            powerLabel: 'Súper bola',
+            powerDuration: 999,
+            timeLimit: 0,
+            fakeCount: 0,
+            hintCount: 0,
+            itemSpawns: [],
+            tip: 'Recoge cada bola de color y toca al fantasma indicado.',
+        };
+        this.phase = 'final-ghosts';
+        this.finalGhosts = [...this.level.ghosts];
+        this.activeBossBall = null;
+        this.activeBossTarget = null;
+        this.bossBallTimer = 1;
+        this.respawnPlayer();
+        this.bus.emit(EVENTS.LEVEL_START, { index: this.gameState.levelIndex, level: this.level });
+    }
+
+    spawnFinalBossBall() {
+        const colors = {
+            blinky: 0xff2222,
+            pinky: 0xff88cc,
+            inky: 0x22ddff,
+            clyde: 0xffaa33,
+        };
+        const target = this.finalGhosts[Math.floor(Math.random() * this.finalGhosts.length)];
+        const tile = this.maze.randomFreeTile((t) =>
+            !this.isOccupied(t) &&
+            this.maze.distance(t, this.playerTile) >= 4 &&
+            this.maze.distance(t, GHOST_SPAWNS.solo) >= 2
+        );
+        if (!tile) {
+            this.bossBallTimer = 1;
+            return;
+        }
+
+        this.activeBossBall = this.spawn(
+            ITEM.BOSS_BALL,
+            `boss_ball_${target}`,
+            tile,
+            { ghost: target, color: colors[target] },
+        );
+        this.bus.emit('boss:ballSpawned', { ghost: target, color: colors[target] });
+    }
+
+    onFinalGhostLocked({ ghost } = {}) {
+        if (this.phase !== 'final-ghosts') return;
+        this.finalGhosts = this.finalGhosts.filter((name) => name !== ghost);
+        if (this.activeBossBall) {
+            this.removeItem(this.activeBossBall);
+            this.activeBossBall = null;
+        }
+        if (this.activeBossTarget === ghost) this.activeBossTarget = null;
+        if (this.finalGhosts.length) this.bossBallTimer = 1.5;
+    }
+
+    startFinalBoss() {
+        if (this.phase !== 'final-ghosts') return;
+        this.phase = 'boss';
+        this.clearItems();
+        this.activeBossBall = null;
+        this.activeBossTarget = null;
+        this.finalGhosts = [];
     }
 
     loseLife(reason) {
@@ -236,7 +335,14 @@ export class LevelManager {
             return;
         }
 
-        if (!this.gameState.is(STATES.PLAYING)) return;
+        if (!this.gameState.is(STATES.PLAYING) || this.phase === 'boss') return;
+        if (this.phase === 'final-ghosts') {
+            if (this.finalGhosts.length && !this.activeBossBall && !this.activeBossTarget) {
+                this.bossBallTimer -= dt;
+                if (this.bossBallTimer <= 0) this.spawnFinalBossBall();
+            }
+            return;
+        }
 
         this.timeLeft -= dt;
         const sec = Math.max(0, Math.ceil(this.timeLeft));

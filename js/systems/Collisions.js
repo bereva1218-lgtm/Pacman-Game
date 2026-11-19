@@ -51,8 +51,10 @@ export class Collisions {
         if (ghost.isClone && this.powers.has('invisibility')) return;
 
         // Nivel 5: la súper bola correcta lo encierra en su spawn
-        if (this.powers.has('superball_' + ghost.name)) {
+        const superBall = 'superball_' + ghost.name;
+        if (this.powers.has(superBall)) {
             ghost.lockInSpawn();
+            this.bus.emit(EVENTS.POWER_EXPIRED, { power: superBall });
             return;
         }
 

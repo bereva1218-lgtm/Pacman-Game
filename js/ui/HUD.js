@@ -159,19 +159,46 @@ export class HUD {
     });
 
     on(EVENTS.EXIT_OPENED, () => this._setPhase('escape'));
+
+    on('boss:etapa2', () => {
+      this.el.level.textContent = 'JEFE FINAL';
+      this.el.ghost.textContent = 'JEFE';
+      this.el.ghost.classList.remove('hud-ghost--defeated');
+      this.el.ghost.style.color = '#c28cff';
+      this.bossBallTarget = null;
+      this.level = {
+        ...this.level, name: 'Jefe final', ghost: 'jefe', powerLabel: 'Súper bola', ghosts: null,
+      };
+      this._setPhase('fight');
+      this.notify('¡JEFE FINAL!', '#c28cff');
+    });
+
+    on('boss:ballSpawned', ({ ghost }) => {
+      const colors = { blinky: 'ROJA', pinky: 'ROSA', inky: 'AZUL', clyde: 'NARANJA' };
+      this.bossBallTarget = ghost;
+      this._setPhase('fight');
+      this.notify(`BOLA ${colors[ghost] ?? ''}: TOCA A ${ghost.toUpperCase()}`, '#ffe47a');
+    });
   }
 
   _onLevelStart(index, level) {
     this.level = level;
+    this.bossBallTarget = null;
     this.stopPower();
     this.hintTimer = 0;
     this.el.hint.classList.remove('hud-hint--show');
 
     this.el.level.textContent = level.name.toUpperCase();
-    this.el.ghost.textContent = level.ghost.toUpperCase();
+    this.el.ghost.textContent = level.ghosts ? 'LOS CUATRO' : level.ghost.toUpperCase();
     this.el.ghost.classList.remove('hud-ghost--defeated');
     this.el.ghost.style.color = KEY_COLORS[index % KEY_COLORS.length];
-    this._setTime(level.timeLimit);
+    if (level.ghosts) {
+      this.el.time.textContent = '--:--';
+      this.el.time.classList.remove('hud-time--warn');
+      this.root.classList.remove('hud--danger');
+    } else {
+      this._setTime(level.timeLimit);
+    }
     this._setPhase('search');
     restartAnim(this.el.level, 'hud-pop');
   }
@@ -182,8 +209,10 @@ export class HUD {
     this.phase = phase;
     const l = this.level;
     const texts = {
-      search: l ? `BUSCA: ${l.powerLabel}` : 'BUSCA EL OBJETO',
-      fight: l ? `¡VENCE A ${l.ghost}!` : '¡VENCE AL FANTASMA!',
+      search: l?.ghosts ? 'BUSCA UNA BOLA DE COLOR' : l ? `BUSCA: ${l.powerLabel}` : 'BUSCA EL OBJETO',
+      fight: l?.ghosts
+        ? `TOCA A ${(this.bossBallTarget ?? 'FANTASMA INDICADO').toUpperCase()}`
+        : l ? `¡VENCE A ${l.ghost}!` : '¡VENCE AL FANTASMA!',
       key: 'RECOGE LA LLAVE',
       escape: '¡CORRE A LA SALIDA!',
     };
