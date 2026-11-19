@@ -96,17 +96,30 @@ export class GhostManager {
 
     spawnTileFor(name, level) {
         const pedido = level.ghostSpawns?.[name] ?? level.ghostSpawn ?? null;
+        const isSafeSpawn = (t) =>
+            !!t &&
+            this.maze.isWalkable(t.col, t.row) &&
+            this.maze.distance(t, this.player.tile) >= 6;
+
         if (!pedido) {
-            return this.maze.randomFreeTile((t) => this.maze.distance(t, this.player.tile) >= 6);
+            return this.maze.randomFreeTile(isSafeSpawn)
+                ?? this.maze.randomFreeTile((t) => this.maze.distance(t, this.player.tile) >= 1)
+                ?? this.player.tile;
         }
-        if (this.maze.isWalkable(pedido.col, pedido.row)) return pedido;
+        if (isSafeSpawn(pedido)) return pedido;
 
         // El spawn del nivel cayó en pared (p. ej. es de otro mapa): la más cercana
-        console.warn(`[GhostManager] spawn de ${name} en pared (${pedido.col},${pedido.row}); ` +
-            'se usa la casilla libre más cercana. Revisar ghostSpawn en levels.js.');
+        const reason = this.maze.isWalkable(pedido.col, pedido.row)
+            ? 'demasiado cerca de Pac-Man'
+            : 'en una pared';
+        console.warn(`[GhostManager] spawn de ${name} ${reason} (${pedido.col},${pedido.row}); ` +
+            'se usa una casilla libre segura. Revisar ghostSpawn en levels.js.');
         const libres = this.maze.freeTiles();
-        libres.sort((a, b) => this.maze.distance(a, pedido) - this.maze.distance(b, pedido));
-        return libres[0] ?? this.player.tile;
+        const seguras = libres.filter(isSafeSpawn);
+        seguras.sort((a, b) => this.maze.distance(a, pedido) - this.maze.distance(b, pedido));
+        return seguras[0]
+            ?? this.maze.randomFreeTile((t) => this.maze.distance(t, this.player.tile) >= 1)
+            ?? this.player.tile;
     }
 
     spawn(name, opts = {}) {

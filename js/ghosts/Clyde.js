@@ -187,6 +187,19 @@ export class Clyde extends Ghost {
         const mine = { ...this.tile };
         const theirs = { ...this.playerTile };
 
+        // Nunca intercambiar dos posiciones que ya coinciden: podría dejar a
+        // Clyde encima de Pac-Man y matarlo nada más ejecutarse el intercambio.
+        if (mine.col === theirs.col && mine.row === theirs.row) {
+            const safeTile = this.maze.randomFreeTile((t) =>
+                this.maze.distance(t, this.playerTile) >= 6
+            ) ?? this.spawnTile;
+            if (safeTile.col !== this.playerTile.col || safeTile.row !== this.playerTile.row) {
+                this.placeAt(safeTile);
+                this.specialCd = CLYDE.swapEvery;
+                return;
+            }
+        }
+
         this.placeAt(theirs);
 
         /* OJO: NO se puede usar PLAYER_RESPAWN para mover a Pac-Man.
