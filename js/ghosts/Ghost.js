@@ -86,6 +86,8 @@ export class Ghost {
             o.material = o.material.clone();
             this.materials.push(o.material);
         });
+        // Color original de cada material: con modelo voxel es blanco (la textura da el color)
+        this.baseColors = this.materials.map((m) => m.color?.clone());
 
         this.scene.add(this.group);
     }
@@ -323,7 +325,9 @@ export class Ghost {
         for (const m of this.materials) m.color?.setHex(hex);
     }
 
-    resetColor() { this.tint(this.color); }
+    resetColor() {
+        this.materials.forEach((m, i) => this.baseColors[i] && m.color?.copy(this.baseColors[i]));
+    }
 
     /** Aviso antes de un ataque especial: parpadeo + evento para el sonido */
     warn(duration = 0.6) {

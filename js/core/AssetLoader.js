@@ -35,12 +35,14 @@ export const MANIFEST = {
     fake_invisibility: 'assets/models/fake_invisibility.vox',
     fake_shield: 'assets/models/fake_shield.vox',
     fake_energy: 'assets/models/fake_energy.vox',
-    // --- P2 / P3 (placeholders mientras tanto) ---
-    pacman: 'assets/models/pacman.vox',
-    blinky: 'assets/models/blinky.vox',
-    pinky: 'assets/models/pinky.vox',
-    inky: 'assets/models/inky.vox',
-    clyde: 'assets/models/clyde.vox',
+    // --- P2 / P3: personajes (MagicaVoxel exportado a .obj; su .mtl y .png van al lado) ---
+    // OJO: los archivos están en Models/ (no en assets/models/) y el del jugador se llama kidmodel
+    pacman: 'Models/kidmodel.vox.obj',
+    blinky: 'Models/blinky.vox.obj',
+    pinky: 'Models/pinky.vox.obj',
+    inky: 'Models/inky.vox.obj',
+    clyde: 'Models/clyde.vox.obj',
+    boss: 'Models/boss.vox.obj',
 };
 
 // ---------------------------------------------------------------------------
@@ -127,6 +129,7 @@ const PLACEHOLDERS = {
     pinky: () => ghostPlaceholder(0xff88cc),
     inky: () => ghostPlaceholder(0x22ddff),
     clyde: () => ghostPlaceholder(0xffaa33),
+    boss: () => ghostPlaceholder(0x8e44ff),
 };
 
 // ---------------------------------------------------------------------------
