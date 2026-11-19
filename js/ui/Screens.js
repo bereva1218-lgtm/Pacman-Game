@@ -298,8 +298,8 @@ export class Screens {
           ${MANSION_SVG}
           <span class="scr-float-ghost">${GHOST_SVG}</span>
         </div>
-        <span class="scr-kicker">PAC-MAN</span>
-        <h1 class="scr-h1">HAUTED MANSION </h1>
+        <span class="scr-kicker">SCAPE-ROOM</span>
+        <h1 class="scr-h1">HAUNTED MANSION </h1>
         <h2 class="scr-h2">— ESCAPA DE LA MANSIÓN —</h2>
         <p class="scr-story">Cuatro fantasmas guardan las llaves de la salida.<br>Encuentra lo que los debilita, enfréntalos y escapa.</p>
         <button class="scr-btn" data-el="startBtn">PRESIONA ENTER</button>
