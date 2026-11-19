@@ -33,6 +33,21 @@ export const CONFIG = {
 };
 
 /**
+ * Nombre visible y color de cada fantasma. Los ids internos (blinky, pinky, inky, clyde)
+ * NO cambian: son los nombres de clases, modelos y eventos. Esto es lo que ve el jugador.
+ *   hex  → 3D (placeholders, bolas del jefe)      css → HUD y pantallas
+ */
+export const GHOST_INFO = {
+    blinky: { name: 'Nicky', hex: 0x44dd55, css: '#5ee06a', colorName: 'VERDE' },
+    pinky: { name: 'Ricky', hex: 0xa24dff, css: '#b46cff', colorName: 'MORADA' },
+    inky: { name: 'Dicky', hex: 0xffe033, css: '#ffe347', colorName: 'AMARILLA' },
+    clyde: { name: 'Dawn', hex: 0x66d9ff, css: '#8fe4ff', colorName: 'AZUL CLARA' },
+};
+
+/** Nombre visible de un fantasma (acepta ids como 'pinky_clone'); si no lo conoce, devuelve el id. */
+export const ghostName = (id) => GHOST_INFO[id]?.name ?? GHOST_INFO[String(id).split('_')[0]]?.name ?? id;
+
+/**
  * Nombres de TODOS los eventos del juego.
  * Voy a usar export const EVENTS, entonces tienen que importarlo como { EVENTS} from este archivop
  * Columna "quién emite → quién escucha" para que los 3 sepamos el contrato.

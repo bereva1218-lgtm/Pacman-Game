@@ -15,6 +15,7 @@
  * velocidad normal y sin ataque especial.
  */
 import { Ghost, GHOST_STATE } from './Ghost.js';
+import { GHOST_INFO } from '../config.js';
 import { EVENTS } from '../config.js';
 
 /** Mover a Pac-Man sin reiniciar el nivel (intercambio de Clyde).
@@ -37,7 +38,7 @@ export const CLYDE = {
 export class Clyde extends Ghost {
     constructor(opts) {
         super({
-            name: 'clyde', color: 0xffaa33, speed: CLYDE.speed,
+            name: 'clyde', color: GHOST_INFO.clyde.hex, speed: CLYDE.speed,
             vulnerableA: ['wave', 'superball'],
             ...opts,
         });

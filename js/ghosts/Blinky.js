@@ -9,6 +9,7 @@
  * que tiene que aprender aquí es "no te quedes alineado con él en un pasillo".
  */
 import { Ghost, GHOST_STATE } from './Ghost.js';
+import { GHOST_INFO } from '../config.js';
 import { lineaDeVision } from './PathFinding.js';
 
 export const BLINKY = {
@@ -23,7 +24,7 @@ export const BLINKY = {
 export class Blinky extends Ghost {
     constructor(opts) {
         super({
-            name: 'blinky', color: 0xff2222, speed: BLINKY.speed,
+            name: 'blinky', color: GHOST_INFO.blinky.hex, speed: BLINKY.speed,
             vulnerableA: ['melee', 'superball'],
             ...opts,
         });

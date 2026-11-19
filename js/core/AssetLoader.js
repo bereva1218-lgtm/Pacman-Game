@@ -16,25 +16,29 @@ import { VOXLoader, buildMesh } from 'three/addons/loaders/VOXLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
-import { CONFIG } from '../config.js';
+import { CONFIG, GHOST_INFO } from '../config.js';
 
 /** nombre → archivo. P2 y P3: agreguen aquí sus modelos (pacman, fantasmas...). */
 export const MANIFEST = {
     // --- P1: mundo ---
-    wall: 'assets/models/wall.vox',
-    door: 'assets/models/door.vox',
-    key: 'assets/models/key.vox',
-    hint: 'assets/models/hint.vox',
+    wall: 'Models/wall.vox.obj', // exportado de MagicaVoxel a .obj (+ .mtl y .png)
+    wall2: 'Models/wall2.vox.obj', // variante de pared con otra textura (casilla '2' en mazeData)
+    wall3: 'Models/wall3.vox.obj', // otra variante de pared (casilla '3' en mazeData)
+    wall4: 'Models/wall4.vox.obj', // otra variante de pared (casilla '4' en mazeData)
+    wall5: 'Models/wall5.vox.obj', // otra variante de pared (casilla '5' en mazeData)
+    door: 'Models/door.vox',
+    key: 'Models/key.vox',
+    hint: 'Models/hint.vox.obj',
     // --- P1: objetos de poder (uno por nivel) ---
-    power_speed: 'assets/models/power_speed.vox',               // poción de velocidad
-    power_invisibility: 'assets/models/power_invisibility.vox', // estrella de invisibilidad
-    power_shield: 'assets/models/power_shield.vox',             // cristal protector
-    power_energy: 'assets/models/power_energy.vox',             // esfera de energía
+    power_speed: 'Models/power_speed.vox',               // poción de velocidad
+    power_invisibility: 'Models/power_invisibility.vox', // estrella de invisibilidad
+    power_shield: 'Models/power_shield.vox',             // cristal protector
+    power_energy: 'Models/power_energy.vox',             // esfera de energía
     // --- P1: objetos falsos (se parecen a los reales) ---
-    fake_speed: 'assets/models/fake_speed.vox',
-    fake_invisibility: 'assets/models/fake_invisibility.vox',
-    fake_shield: 'assets/models/fake_shield.vox',
-    fake_energy: 'assets/models/fake_energy.vox',
+    fake_speed: 'Models/fake_speed.vox',
+    fake_invisibility: 'Models/fake_invisibility.vox',
+    fake_shield: 'Mdels/fake_shield.vox',
+    fake_energy: 'Models/fake_energy.vox',
     // --- P2 / P3: personajes (MagicaVoxel exportado a .obj; su .mtl y .png van al lado) ---
     // OJO: los archivos están en Models/ (no en assets/models/) y el del jugador se llama kidmodel
     pacman: 'Models/kidmodel.vox.obj',
@@ -91,6 +95,10 @@ const POWER_LOOK = {
 
 const PLACEHOLDERS = {
     wall: () => new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat(CONFIG.COLORS.WALL, 0.15)),
+    wall2: () => new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat(0xff6622, 0.15)),
+    wall3: () => new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat(0x22cc66, 0.15)),
+    wall4: () => new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat(0xffdd22, 0.15)),
+    wall5: () => new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat(0xcc44ff, 0.15)),
     door: () => {
         const g = new THREE.Group();
         const board = new THREE.Mesh(new THREE.BoxGeometry(1, 1.2, 0.25), mat(CONFIG.COLORS.DOOR));
@@ -125,10 +133,10 @@ const PLACEHOLDERS = {
     fake_energy: POWER_LOOK.energy,
 
     pacman: () => new THREE.Mesh(new THREE.SphereGeometry(0.4, 20, 16), mat(0xffdd00, 0.3)),
-    blinky: () => ghostPlaceholder(0xff2222),
-    pinky: () => ghostPlaceholder(0xff88cc),
-    inky: () => ghostPlaceholder(0x22ddff),
-    clyde: () => ghostPlaceholder(0xffaa33),
+    blinky: () => ghostPlaceholder(GHOST_INFO.blinky.hex),
+    pinky: () => ghostPlaceholder(GHOST_INFO.pinky.hex),
+    inky: () => ghostPlaceholder(GHOST_INFO.inky.hex),
+    clyde: () => ghostPlaceholder(GHOST_INFO.clyde.hex),
     boss: () => ghostPlaceholder(0x8e44ff),
 };
 

@@ -18,7 +18,7 @@ const DIRS4 = [
 export class Maze {
     /**
      * @param {THREE.Scene} scene
-     * @param {number[][]} matrix  0 = libre, 1 = pared
+     * @param {number[][]} matrix  0 = libre, 1 = pared (wall), 2 = pared variante (wall2), 3 = pared variante (wall3), 4 = pared variante (wall4), 5 = pared variante (wall5)
      * @param {import('../core/AssetLoader.js').AssetLoader} assets
      * @param {{col:number,row:number}[]} skipTiles  paredes que NO se dibujan (p. ej. la puerta)
      */
@@ -52,28 +52,39 @@ export class Maze {
 
     _buildWalls(assets, skipTiles) {
         const skip = new Set(skipTiles.map((t) => `${t.col},${t.row}`));
-        const wallTiles = [];
+        const tiles = { 1: [], 2: [], 3: [], 4: [], 5: [] };
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.cols; col++) {
-                if (this.grid[row][col] === 1 && !skip.has(`${col},${row}`)) wallTiles.push({ col, row });
+                const v = this.grid[row][col];
+                if (tiles[v] && !skip.has(`${col},${row}`)) tiles[v].push({ col, row });
             }
         }
 
-        // InstancedMesh: 1 sola geometría dibujada N veces → 1 draw call para todas las paredes
-        const { geometry, material } = assets.getInstancingData('wall', this.tile);
-        this.walls = new THREE.InstancedMesh(geometry, material, wallTiles.length);
-        this.walls.castShadow = this.walls.receiveShadow = true;
+        // InstancedMesh: 1 sola geometría dibujada N veces → 1 draw call por tipo de pared
+        // 1 = wall (this.walls), 2 = wall2 (this.walls2), 3 = wall3 (this.walls3), 4 = wall4 (this.walls4), 5 = wall5 (this.walls5)
+        this.walls = this._buildWallMesh(assets, 'wall', tiles[1]);
+        this.walls2 = this._buildWallMesh(assets, 'wall2', tiles[2]);
+        this.walls3 = this._buildWallMesh(assets, 'wall3', tiles[3]);
+        this.walls4 = this._buildWallMesh(assets, 'wall4', tiles[4]);
+        this.walls5 = this._buildWallMesh(assets, 'wall5', tiles[5]);
+    }
+
+    _buildWallMesh(assets, key, wallTiles) {
+        const { geometry, material } = assets.getInstancingData(key, this.tile);
+        const mesh = new THREE.InstancedMesh(geometry, material, wallTiles.length);
+        mesh.castShadow = mesh.receiveShadow = true;
 
         const m = new THREE.Matrix4();
         const scaleY = CONFIG.WALL_HEIGHT / this.tile;
         wallTiles.forEach((t, i) => {
             const p = this.tileToWorld(t.col, t.row);
             m.makeScale(1, scaleY, 1).setPosition(p.x, 0, p.z);
-            this.walls.setMatrixAt(i, m);
+            mesh.setMatrixAt(i, m);
         });
-        this.walls.instanceMatrix.needsUpdate = true;
-        this.walls.computeBoundingSphere();
-        this.group.add(this.walls);
+        mesh.instanceMatrix.needsUpdate = true;
+        mesh.computeBoundingSphere();
+        this.group.add(mesh);
+        return mesh;
     }
 
     // ------------------------------------------------------------ ayudas de grilla
@@ -83,7 +94,7 @@ export class Maze {
     }
 
     isWall(col, row) {
-        return !this.inBounds(col, row) || this.grid[row][col] === 1;
+        return !this.inBounds(col, row) || this.grid[row][col] >= 1; // 1 = wall, 2 = wall2, 3 = wall3, 4 = wall4, 5 = wall5 (todas bloquean)
     }
 
     isWalkable(col, row) {

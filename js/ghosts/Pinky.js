@@ -15,6 +15,7 @@
  *   2. PinkyClone: la copia, al final
  */
 import { Ghost, GHOST_STATE } from './Ghost.js';
+import { GHOST_INFO } from '../config.js';
 
 export const PINKY = {
     speed: 3.6,             // más rápida que Blinky
@@ -27,7 +28,7 @@ export const PINKY = {
 export class Pinky extends Ghost {
     constructor(opts) {
         super({
-            name: 'pinky', color: 0xff88cc, speed: PINKY.speed,
+            name: 'pinky', color: GHOST_INFO.pinky.hex, speed: PINKY.speed,
             vulnerableA: ['melee', 'superball'],
             ...opts,
         });
@@ -169,7 +170,7 @@ export class Pinky extends Ghost {
 export class PinkyClone extends Ghost {
     constructor(opts) {
         super({
-            name: 'pinky_clone', modelKey: 'pinky', color: 0xff88cc,
+            name: 'pinky_clone', modelKey: 'pinky', color: GHOST_INFO.pinky.hex,
             speed: PINKY.cloneSpeed, maxHits: 1, vulnerableA: [],
             ...opts,
         });

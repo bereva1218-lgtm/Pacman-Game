@@ -15,6 +15,7 @@
  * de Pac-Man, duplicado.
  */
 import { Ghost, GHOST_STATE } from './Ghost.js';
+import { GHOST_INFO } from '../config.js';
 import { lineaDeVision } from './PathFinding.js';
 import { Projectile } from './Projectile.js';
 
@@ -32,7 +33,7 @@ export const INKY = {
 export class Inky extends Ghost {
     constructor(opts) {
         super({
-            name: 'inky', color: 0x22ddff, speed: INKY.speed,
+            name: 'inky', color: GHOST_INFO.inky.hex, speed: INKY.speed,
             vulnerableA: ['melee', 'superball'],
             ...opts,
         });

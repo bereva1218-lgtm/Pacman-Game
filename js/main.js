@@ -33,6 +33,7 @@ import { TestWaveSource } from './ghosts/GhostDebug.js';
 import { GhostManager } from './ghosts/GhostManager.js';
 import { BossStage } from './ghosts/Boss.js';
 import { Collisions } from './systems/Collisions.js';
+import { AudioManager } from './systems/AudioManager.js';
 
 // ---------------------------------------------------------------- renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -97,6 +98,12 @@ async function init() {
     const powers = new PowerState(bus);                                       // → new PowerManager(ctx)
     const waveSource = new TestWaveSource({ scene, maze, player, bus, powers }); // → new EnergyWave(...)
     Object.assign(ctx, { player, powers, waveSource });
+
+    // ===== AUDIO: escucha el bus, no hay que llamarlo desde ningún otro sitio =====
+    // Los archivos van en audio/ (lista en audio/LEEME.md). Los que falten simplemente no suenan.
+    const audio = new AudioManager({ bus, gameState, powers });
+    audio.loadAll();                          // sin await: el juego arranca mientras cargan
+    Object.assign(ctx, { audio });
 
     const hud = new HUD(ctx);
     new Screens({ ...ctx, hud });            // tiene su propio reloj: no va en systems

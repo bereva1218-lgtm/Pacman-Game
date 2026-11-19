@@ -18,12 +18,12 @@
 //   const hud = new HUD(ctx);
 //   systems.push(hud);   // así la barra de poder y las pistas solo corren en PLAYING
 
-import { EVENTS } from '../config.js';
+import { EVENTS, GHOST_INFO, ghostName } from '../config.js';
 import { STATES } from '../core/GameState.js';
 import { LEVELS } from '../levels/levels.js';
 
 /** Un color por llave / nivel (también lo usa Screens.js). */
-export const KEY_COLORS = ['#ff4d5e', '#ff9be6', '#5ee0ff', '#ffb347']; // blinky, pinky, inky, clyde
+export const KEY_COLORS = ['blinky', 'pinky', 'inky', 'clyde'].map((g) => GHOST_INFO[g].css); // verde, morado, amarillo, azul claro
 
 export const KEY_SVG = `
 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -174,10 +174,9 @@ export class HUD {
     });
 
     on('boss:ballSpawned', ({ ghost }) => {
-      const colors = { blinky: 'ROJA', pinky: 'ROSA', inky: 'AZUL', clyde: 'NARANJA' };
-      this.bossBallTarget = null;
+      this.bossBallTarget = ghost;
       this._setPhase('fight');
-      this.notify(`BOLA ${colors[ghost] ?? ''}: PUEDES TOCAR A CUALQUIERA`, '#ffe47a');
+      this.notify(`BOLA ${GHOST_INFO[ghost]?.colorName ?? ''}: TOCA A ${ghostName(ghost).toUpperCase()}`, '#ffe47a');
     });
   }
 
@@ -189,7 +188,7 @@ export class HUD {
     this.el.hint.classList.remove('hud-hint--show');
 
     this.el.level.textContent = level.name.toUpperCase();
-    this.el.ghost.textContent = level.ghosts ? 'LOS CUATRO' : level.ghost.toUpperCase();
+    this.el.ghost.textContent = level.ghosts ? 'LOS CUATRO' : ghostName(level.ghost).toUpperCase();
     this.el.ghost.classList.remove('hud-ghost--defeated');
     this.el.ghost.style.color = KEY_COLORS[index % KEY_COLORS.length];
     if (level.ghosts) {
@@ -211,8 +210,8 @@ export class HUD {
     const texts = {
       search: l?.ghosts ? 'BUSCA UNA BOLA DE COLOR' : l ? `BUSCA: ${l.powerLabel}` : 'BUSCA EL OBJETO',
       fight: l?.ghosts
-        ? `TOCA A ${(this.bossBallTarget ?? 'FANTASMA INDICADO').toUpperCase()}`
-        : l ? `¡VENCE A ${l.ghost}!` : '¡VENCE AL FANTASMA!',
+        ? `TOCA A ${(this.bossBallTarget ? ghostName(this.bossBallTarget) : 'FANTASMA INDICADO').toUpperCase()}`
+        : l ? `¡VENCE A ${ghostName(l.ghost)}!` : '¡VENCE AL FANTASMA!',
       key: 'RECOGE LA LLAVE',
       escape: '¡CORRE A LA SALIDA!',
     };
