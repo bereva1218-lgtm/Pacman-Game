@@ -57,38 +57,22 @@ export const SOUNDS = {
     pickup_power: { vol: 0.9 },                  // objeto real (el mismo sonido para los 4 poderes)
     pickup_superball: { vol: 0.9 },              // nivel 5: súper bola del jefe
     pickup_fake: { vol: 0.9 },                   // objeto falso (¡trampa!)
-    pickup_hint: { vol: 0.8 },
-    pickup_key: { vol: 0.9 },
-    key_spawn: { vol: 0.8 },                     // aparece la llave al vencer al fantasma
-    item_respawn: { vol: 0.5 },
+    pickup_hint: { vol: 0.8 },                   // también al reaparecer un objeto
+    pickup_key: { vol: 0.9 },                    // también al aparecer la llave
     power_expire: { vol: 0.7 },
     shield_block: { vol: 0.9, cd: 0.3 },
     exit_open: { vol: 1 },
 
-    // --- Tiempo ---
-    timer_tick: { vol: 0.6 },                    // cada segundo en los últimos 10
-    timer_timeout: { vol: 0.9 },
-
     // --- Fantasmas ---
     ghost_spawn: { vol: 0.8 },
-    ghost_warn: { vol: 0.8, cd: 0.3 },           // aviso antes de un ataque especial
-    ghost_hit: { vol: 0.9, cd: 0.1 },
-    ghost_immune: { vol: 0.6, cd: 0.3 },         // el golpe no le hace nada
-    ghost_defeated: { vol: 1 },
-    ghost_locked: { vol: 0.9 },                  // encerrado con su súper bola
-    blinky_dash: { vol: 0.9 },
-    pinky_clone: { vol: 0.8, cd: 0.2, vary: 0.08 },
-    inky_teleport: { vol: 0.9 },
-    inky_shoot: { vol: 0.8, cd: 0.1 },
-    clyde_swap: { vol: 0.9 },
-    projectile_blocked: { vol: 0.6, cd: 0.1 },
+    ghost_warn: { vol: 0.8, cd: 0.3 },           // aviso antes de cualquier ataque especial
+    ghost_hit: { vol: 0.9, cd: 0.1 },            // le pegas a un fantasma
+    ghost_defeated: { vol: 1 },                  // también al quedar encerrado con su súper bola
 
     // --- Jefe final ---
     boss_fusion: { vol: 1 },
     boss_phase2: { vol: 1 },
-    boss_attack: { vol: 0.9 },
-    boss_ring: { vol: 0.8, cd: 0.2 },            // el suelo se encoge
-    boss_superball: { vol: 0.9 },
+    boss_attack: { vol: 0.9, cd: 0.2 },          // cualquier ataque: nuevo ataque, anillo o súper bola
     boss_ball_spawn: { vol: 0.8 },
     boss_hit: { vol: 1, cd: 0.1 },
     boss_defeated: { vol: 1 },
@@ -98,31 +82,26 @@ export const SOUNDS = {
 const EVENT_SOUNDS = {
     [EVENTS.FAKE_PICKED]: 'pickup_fake',
     [EVENTS.HINT_PICKED]: 'pickup_hint',
-    [EVENTS.KEY_SPAWNED]: 'key_spawn',
+    [EVENTS.KEY_SPAWNED]: 'pickup_key',
     [EVENTS.EXIT_OPENED]: 'exit_open',
-    [EVENTS.ITEM_RESPAWNED]: 'item_respawn',
+    [EVENTS.ITEM_RESPAWNED]: 'pickup_hint',
     [EVENTS.LEVEL_COMPLETE]: 'jingle_level_complete',
-    [EVENTS.LEVEL_TIMEOUT]: 'timer_timeout',
+    [EVENTS.LEVEL_TIMEOUT]: 'jingle_game_over',
     [EVENTS.PLAYER_HIT]: 'player_hit',
     [EVENTS.PLAYER_RESPAWN]: 'player_respawn',
     [EVENTS.GHOST_DEFEATED]: 'ghost_defeated',
     'ghosts:ready': 'ghost_spawn',
     'ghost:warn': 'ghost_warn',
     'ghost:hit': 'ghost_hit',
-    'ghost:immune': 'ghost_immune',
-    'ghost:locked': 'ghost_locked',
     'shield:blocked': 'shield_block',
-    'projectile:blocked': 'projectile_blocked',
-    'blinky:dash': 'blinky_dash',
-    'pinky:clone': 'pinky_clone',
-    'inky:teleport': 'inky_teleport',
-    'inky:shoot': 'inky_shoot',
-    'clyde:swap': 'clyde_swap',
+    'projectile:blocked': 'shield_block',
+    'ghost:immune': 'shield_block',
+    'ghost:locked': 'ghost_defeated',
     'boss:fusion': 'boss_fusion',
     'boss:etapa2': 'boss_phase2',
     'boss:ataque': 'boss_attack',
-    'boss:anillo': 'boss_ring',
-    'boss:superbola': 'boss_superball',
+    'boss:anillo': 'boss_attack',
+    'boss:superbola': 'boss_attack',
     'boss:ballSpawned': 'boss_ball_spawn',
     'boss:ballCollected': 'pickup_superball',
     'boss:golpe': 'boss_hit',
@@ -315,8 +294,6 @@ export class AudioManager {
         // Llave: KEY_COLLECTED también se emite con keys = 0 al empezar la partida
         bus.on(EVENTS.KEY_COLLECTED, ({ keys }) => { if (keys > 0) this.play('pickup_key'); });
 
-        // Reloj: tic en los últimos 10 segundos
-        bus.on(EVENTS.LEVEL_TIME, ({ remaining }) => { if (remaining <= 10 && remaining > 0) this.play('timer_tick'); });
 
         // Pasos (solo jugando) y onda de energía (solo con el poder del nivel 4)
         bus.on(EVENTS.PLAYER_TILE, () => { if (gameState.is(STATES.PLAYING)) this.play('player_step'); });

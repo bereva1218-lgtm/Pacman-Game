@@ -25,7 +25,7 @@ Formatos aceptados: `.mp3` (recomendado), `.ogg` o `.wav`. Ejemplo: `audio/picku
 |---|---|
 | `ui_click` | Al empezar la partida, pausar y reanudar |
 | `jingle_level_complete` | Nivel superado |
-| `jingle_game_over` | Se acabaron las vidas |
+| `jingle_game_over` | Se acabaron las vidas o se acaba el tiempo |
 | `jingle_win` | Victoria final |
 
 ## Jugador
@@ -44,37 +44,22 @@ Formatos aceptados: `.mp3` (recomendado), `.ogg` o `.wav`. Ejemplo: `audio/picku
 | `pickup_power` | Recoge un objeto real (el mismo sonido para los 4 poderes) |
 | `pickup_superball` | Recoge una súper bola (nivel 5) |
 | `pickup_fake` | Recoge un objeto falso (tono de "trampa") |
-| `pickup_hint` | Recoge una pista |
-| `pickup_key` | Recoge la llave |
-| `key_spawn` | Aparece la llave al vencer al fantasma |
-| `item_respawn` | Reaparece un objeto |
+| `pickup_hint` | Recoge una pista y reaparece un objeto |
+| `pickup_key` | Aparece la llave al vencer al fantasma y al recogerla |
 | `power_expire` | Se acaba el poder |
-| `shield_block` | El escudo bloquea un golpe |
+| `shield_block` | Un golpe o proyectil es bloqueado (escudo, pared o fantasma inmune) |
 | `exit_open` | Se abre la puerta de salida |
-
-## Tiempo
-
-| Archivo | Cuándo suena |
-|---|---|
-| `timer_tick` | Cada segundo en los últimos 10 |
-| `timer_timeout` | Se acaba el tiempo |
 
 ## Fantasmas
 
 | Archivo | Cuándo suena |
 |---|---|
 | `ghost_spawn` | Aparecen los fantasmas al empezar el nivel |
-| `ghost_warn` | Aviso justo antes de un ataque especial (Blinky, Inky, Clyde, Pinky) |
+| `ghost_warn` | Aviso justo antes de un ataque especial (de cualquier fantasma) |
 | `ghost_hit` | Le pegas a un fantasma |
-| `ghost_immune` | El golpe no le hace daño |
-| `ghost_defeated` | Fantasma derrotado |
-| `ghost_locked` | Fantasma encerrado con su súper bola (nivel 5) |
-| `blinky_dash` | Embestida de Blinky |
-| `pinky_clone` | Pinky crea un clon |
-| `inky_teleport` | Inky se teletransporta |
-| `inky_shoot` | Inky dispara |
-| `clyde_swap` | Clyde cambia de lugar contigo |
-| `projectile_blocked` | Un proyectil choca con una pared o el escudo |
+| `ghost_defeated` | Fantasma derrotado (o encerrado con su súper bola, nivel 5) |
+
+Los bloqueos (escudo, proyectil contra pared, golpe inmune) usan `shield_block`.
 
 ## Jefe final
 
@@ -82,14 +67,12 @@ Formatos aceptados: `.mp3` (recomendado), `.ogg` o `.wav`. Ejemplo: `audio/picku
 |---|---|
 | `boss_fusion` | Los cuatro fantasmas se fusionan |
 | `boss_phase2` | Empieza la etapa 2 |
-| `boss_attack` | Empieza un ataque nuevo |
-| `boss_ring` | El suelo de la arena se encoge |
-| `boss_superball` | Lanza una súper bola |
+| `boss_attack` | Cualquier ataque del jefe (ataque nuevo, suelo que se encoge, súper bola) |
 | `boss_ball_spawn` | Aparece una súper bola para recoger |
 | `boss_hit` | Golpeas al jefe |
 | `boss_defeated` | Jefe derrotado |
 
-**Total: 46 archivos** (6 de música + 40 efectos y jingles).
+**Total: 32 archivos** (6 de música + 26 efectos y jingles).
 
 Para añadir uno nuevo: ponlo en `SOUNDS` y enlázalo a un evento en `EVENT_SOUNDS`
 dentro de `js/systems/AudioManager.js` (o llama a `audio.play('nombre')`).
