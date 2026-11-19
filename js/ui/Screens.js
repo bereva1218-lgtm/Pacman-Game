@@ -15,7 +15,7 @@
 // también deben correr durante LEVEL_COMPLETE.
 
 
-import { EVENTS, CONFIG } from '../config.js';
+import { EVENTS, CONFIG, ghostName } from '../config.js';
 import { STATES } from '../core/GameState.js';
 import { LEVELS, ESCAPE_TIME } from '../levels/levels.js';
 import { KEY_COLORS, KEY_SVG, restartAnim } from './HUD.js';
@@ -164,7 +164,7 @@ export class Screens {
         title: level.ghosts ? 'Los cuatro fantasmas' : theme,
         sub: level.ghosts
           ? level.tip
-          : `Busca: ${level.powerLabel}\nEnfrenta a ${level.ghost.toUpperCase()}`,
+          : `Busca: ${level.powerLabel}\nEnfrenta a ${ghostName(level.ghost).toUpperCase()}`,
         color: KEY_COLORS[index % KEY_COLORS.length],
         icon: GHOST_SVG,
         duration: 2.8,

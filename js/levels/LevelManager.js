@@ -10,7 +10,7 @@
  *
  * Vidas: se pierde 1 si se acaba el tiempo (se reinicia el nivel) o si P3 emite PLAYER_HIT.
  */
-import { EVENTS, CONFIG } from '../config.js';
+import { EVENTS, CONFIG, GHOST_INFO } from '../config.js';
 import { STATES } from '../core/GameState.js';
 import { GHOST_SPAWNS, PLAYER_START } from '../world/mazeData.js';
 import { LEVELS, ESCAPE_TIME } from './levels.js';
@@ -251,12 +251,7 @@ export class LevelManager {
     }
 
     spawnFinalBossBall() {
-        const colors = {
-            blinky: 0xff2222,
-            pinky: 0xff88cc,
-            inky: 0x22ddff,
-            clyde: 0xffaa33,
-        };
+        const colors = Object.fromEntries(Object.entries(GHOST_INFO).map(([g, i]) => [g, i.hex]));
         const target = this.finalGhosts[Math.floor(Math.random() * this.finalGhosts.length)];
         const tile = this.maze.randomFreeTile((t) =>
             !this.isOccupied(t) &&

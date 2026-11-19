@@ -64,6 +64,14 @@ function reloadMaze(maze, matrix, assets, skipTiles = []) {
     maze.scene.remove(maze.group);
     maze.walls?.geometry.dispose();
     maze.walls?.material.dispose();
+    maze.walls2?.geometry.dispose();
+    maze.walls2?.material.dispose();
+    maze.walls3?.geometry.dispose();
+    maze.walls3?.material.dispose();
+    maze.walls4?.geometry.dispose();
+    maze.walls4?.material.dispose();
+    maze.walls5?.geometry.dispose();
+    maze.walls5?.material.dispose();
 
     maze.group = new THREE.Group();
     maze.group.name = 'Maze';

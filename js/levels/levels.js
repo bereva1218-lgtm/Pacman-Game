@@ -41,7 +41,7 @@ export const LEVELS = [
         fakeCount: 2,
         hintCount: 2,
         ghostSpawn: { col: 10, row: 10 },
-        tip: 'Invisible, ella no te persigue. Acércate por detrás.',
+        tip: 'Invisible, no te persigue. Acércate por detrás.',
     },
     {
         id: 3,
