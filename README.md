@@ -77,3 +77,6 @@ Usamos herramientas de inteligencia artificial en aproximadamente un **20 %** de
 - ajustes menores de interfaz, como ocultar el panel de depuración.
 
 El diseño del juego, los niveles, los laberintos, los modelos voxel, la lógica de los fantasmas y la integración entre módulos son trabajo del equipo. Revisamos y entendemos todo el código generado con ayuda de IA antes de incluirlo.
+
+##Url:
+https://bereva1218-lgtm.github.io/Pacman-Game/
