@@ -190,9 +190,7 @@ export class LevelManager {
     }
 
     onPowerExpired({ power } = {}) {
-        if (this.phase === 'final-ghosts' &&
-            this.activeBossTarget &&
-            power === `superball_${this.activeBossTarget}`) {
+        if (this.phase === 'final-ghosts' && power?.startsWith('superball_')) {
             this.activeBossTarget = null;
             this.bossBallTimer = 1.5;
             return;
@@ -239,7 +237,7 @@ export class LevelManager {
             fakeCount: 0,
             hintCount: 0,
             itemSpawns: [],
-            tip: 'Recoge cada bola de color y toca al fantasma indicado.',
+            tip: 'Recoge las bolas de color y usa cada una para tocar a cualquiera de los cuatro fantasmas.',
         };
         this.phase = 'final-ghosts';
         this.finalGhosts = [...this.level.ghosts];

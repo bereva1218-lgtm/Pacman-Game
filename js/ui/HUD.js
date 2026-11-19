@@ -175,9 +175,9 @@ export class HUD {
 
     on('boss:ballSpawned', ({ ghost }) => {
       const colors = { blinky: 'ROJA', pinky: 'ROSA', inky: 'AZUL', clyde: 'NARANJA' };
-      this.bossBallTarget = ghost;
+      this.bossBallTarget = null;
       this._setPhase('fight');
-      this.notify(`BOLA ${colors[ghost] ?? ''}: TOCA A ${ghost.toUpperCase()}`, '#ffe47a');
+      this.notify(`BOLA ${colors[ghost] ?? ''}: PUEDES TOCAR A CUALQUIERA`, '#ffe47a');
     });
   }
 

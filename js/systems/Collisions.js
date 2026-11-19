@@ -39,10 +39,33 @@ export class Collisions {
     // --------------------------------------------------- Pac-Man ↔ fantasma
 
     checkGhostContact() {
-        for (const ghost of this.ghosts.all) {
+        const ghosts = this.ghosts.all;
+
+        // Durante la etapa final, cualquier súper bola puede encerrar a
+        // cualquiera de los fantasmas que siga activo.
+        if (this.powers.current?.startsWith('superball_')) {
+            const touchedGhost = ghosts.find((ghost) =>
+                this.near(this.player.mesh.position, ghost.position, HIT.contactTiles)
+            );
+            if (touchedGhost) {
+                this.lockGhostWithSuperBall(touchedGhost);
+                this.invuln = HIT.playerInvuln;
+                return;
+            }
+        }
+
+        for (const ghost of ghosts) {
             if (!this.near(this.player.mesh.position, ghost.position, HIT.contactTiles)) continue;
             this.resolveContact(ghost);
         }
+    }
+
+    lockGhostWithSuperBall(ghost) {
+        const power = this.powers.current;
+        if (!power?.startsWith('superball_')) return false;
+        ghost.lockInSpawn();
+        this.bus.emit(EVENTS.POWER_EXPIRED, { power });
+        return true;
     }
 
     resolveContact(ghost) {
@@ -51,12 +74,7 @@ export class Collisions {
         if (ghost.isClone && this.powers.has('invisibility')) return;
 
         // Nivel 5: la súper bola correcta lo encierra en su spawn
-        const superBall = 'superball_' + ghost.name;
-        if (this.powers.has(superBall)) {
-            ghost.lockInSpawn();
-            this.bus.emit(EVENTS.POWER_EXPIRED, { power: superBall });
-            return;
-        }
+        if (this.lockGhostWithSuperBall(ghost)) return;
 
         if (this.canMelee(ghost)) {
             ghost.takeHit('melee');
