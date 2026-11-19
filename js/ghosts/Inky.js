@@ -3,7 +3,7 @@
  * Base (el documento lo dejaba "por definir"): mantiene distancia. Si Pac-Man se
  *       acerca a menos de 5 casillas retrocede; si está a más de 9 se aproxima.
  *       Mientras tanto dispara proyectiles en línea recta.
- * Especial: cada 20 s aparece 5 casillas al frente de Pac-Man para cortarle el
+ * Especial: cada 8 s aparece 5 casillas al frente de Pac-Man para cortarle el
  *       paso. Si esa casilla es pared, prueba la 4, 3, 2 y 1.
  * Lo vence: el cristal protector (aguanta el contacto y bloquea proyectiles), 3 impactos.
  *
@@ -20,7 +20,7 @@ import { Projectile } from './Projectile.js';
 
 export const INKY = {
     speed: 3.1,
-    teleportEvery: 20.0,
+    teleportEvery: 8.0,     // segundos entre teletransportes (antes 20)
     teleportTiles: 5,
     safeDistance: 5,        // a menos de esto retrocede
     approachDistance: 9,    // a más de esto se acerca
@@ -133,7 +133,7 @@ export class Inky extends Ghost {
      *
      * CÓMO FUNCIONA
      * Dos cosas a la vez, cada una con su temporizador. Cada 3,5 s dispara un
-     * proyectil, pero solo si tiene a Pac-Man en línea recta. Y cada 20 s
+     * proyectil, pero solo si tiene a Pac-Man en línea recta. Y cada 8 s
      * desaparece y reaparece 5 casillas por delante de él para cortarle el
      * paso: si Pac-Man sigue de frente se lo come. Antes de hacerlo parpadea
      * 0,6 s, que es el aviso.

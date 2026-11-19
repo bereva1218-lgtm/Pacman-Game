@@ -12,10 +12,10 @@ import { Ghost, GHOST_STATE } from './Ghost.js';
 import { lineaDeVision } from './PathFinding.js';
 
 export const BLINKY = {
-    speed: 3.4,
+    speed: 4.2,             // casillas/s persiguiendo (antes 3.4; Pac-Man va a 5)
     dashCooldown: 4.0,      // espera entre embestidas
     visionRange: 10,        // hasta dónde ve por el pasillo
-    dashSpeedMul: 3.0,
+    dashSpeedMul: 4.5,      // velocidad de la embestida = speed × esto (antes 3)
     dashMaxTime: 2.0,
     warnTime: 0.5,          // aviso antes de salir disparado
 };
@@ -61,7 +61,7 @@ export class Blinky extends Ghost {
      * Tiene tres fases encadenadas. Primero busca a Pac-Man en línea recta:
      * si están en la misma fila o columna y no hay pared en medio, se FRENA
      * medio segundo y parpadea — ese es el aviso, sin él la embestida se
-     * siente injusta. Después sale disparado al triple de velocidad en línea
+     * siente injusta. Después sale disparado a 4,5 veces su velocidad en línea
      * recta, sin seguir el BFS. La embestida termina al chocar con una pared
      * o a los 2 s, y entonces empieza una espera de 4 s antes de repetirla.
      * Se esquiva doblando una esquina: en cuanto deja de haber línea recta,
@@ -77,7 +77,7 @@ export class Blinky extends Ghost {
      *   Ghost.pickNextTile() ignora el BFS y sigue recto. Ponerlo a null
      *   devuelve el control a la persecución normal.
      * - this.speedMul lo multiplica Ghost.speed. Vale 0.2 mientras carga (por
-     *   eso se frena) y 3 durante la embestida.
+     *   eso se frena) y 4,5 durante la embestida.
      * - onForcedDirBlocked() lo llama Ghost.pickNextTile() cuando la línea
      *   recta choca con una pared; aquí se aprovecha para cortar el ataque.
      * - stun() está sobrescrito para cancelar la embestida: si le pegan

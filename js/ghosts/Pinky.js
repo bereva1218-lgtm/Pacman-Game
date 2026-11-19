@@ -2,7 +2,8 @@
  *
  * Base: no va a la casilla de Pac-Man, apunta 4 casillas adelante de hacia donde
  *       mira, para cortarle el camino.
- * Especial: cada 15 s genera un clon. Con el tiempo hay menos caminos seguros.
+ * Especial: cada 7 s genera un clon, y cada clon también se duplica cada 7 s
+ *       (hasta 8 clones en total). Con el tiempo hay menos caminos seguros.
  * Invisibilidad: Pinky y sus clones pierden el rastro y patrullan al azar.
  * La vence: acercarse invisible, 2 impactos. Al vencerla los clones desaparecen.
  *
@@ -18,8 +19,8 @@ import { Ghost, GHOST_STATE } from './Ghost.js';
 export const PINKY = {
     speed: 3.6,             // más rápida que Blinky
     tilesAhead: 4,
-    cloneEvery: 15.0,
-    maxClones: 4,
+    cloneEvery: 7.0,        // segundos entre duplicaciones (antes 15)
+    maxClones: 8,           // tope TOTAL de clones, contando los de los clones
     cloneSpeed: 3.0,
 };
 
@@ -76,8 +77,9 @@ export class Pinky extends Ghost {
      * -----------------------------------------------------------------
      *
      * CÓMO FUNCIONA
-     * Cada 15 s aparece un clon en una casilla al azar lejos de Pac-Man,
-     * hasta un máximo de 4. Los clones no se pueden golpear: solo cuenta la
+     * Cada 7 s aparece un clon en una casilla al azar lejos de Pac-Man. Los
+     * clones también se duplican cada 7 s, así que crecen rápido (1, 2, 4…)
+     * hasta un máximo de 8 en total. Los clones no se pueden golpear: solo cuenta la
      * Pinky original, y al vencerla desaparecen todos de golpe. Por eso son
      * más pequeños y semitransparentes, para que el jugador sepa a cuál
      * tiene que ir.
@@ -87,8 +89,10 @@ export class Pinky extends Ghost {
      *   Ghost.update(): descuenta this.specialCd cada frame y aquí solo se
      *   mira si llegó a cero. Recargarlo ANTES de crear el clon evita que se
      *   dispare otra vez si spawnClone() sale sin hacer nada.
-     * - spawnClone() limpia primero la lista con un filter() por si algún
-     *   clon murió, y corta si ya hay 4.
+     * - spawnClone(from) limpia primero la lista con un filter() por si algún
+     *   clon murió, y corta si ya hay 8. Lo llaman tanto Pinky como sus
+     *   clones (from = quien se duplica), pero la lista y el tope los lleva
+     *   siempre la Pinky original, así no se descontrola.
      * - manager.addExtra(clone) mete el clon en la lista 'extras' de
      *   GhostManager, que es la de los fantasmas añadidos a mitad de nivel.
      *   Sin esa llamada el clon existiría en pantalla pero nadie lo
@@ -103,13 +107,15 @@ export class Pinky extends Ghost {
         this.spawnClone();
     }
 
-    spawnClone() {
+    /** @param from quién se duplica: la propia Pinky o uno de sus clones */
+    spawnClone(from = this) {
+        if (this.state === GHOST_STATE.DERROTADO) return;
         this.clones = this.clones.filter((c) => c.state !== GHOST_STATE.DERROTADO);
         if (this.clones.length >= PINKY.maxClones) return;
 
-        const tile = this.randomTile();
+        const tile = from.randomTile();
         if (!tile) return;
-        this.warn(0.4);
+        from.warn(0.4);
 
         const clone = new PinkyClone({
             scene: this.scene, maze: this.maze, player: this.player, bus: this.bus,
@@ -147,8 +153,9 @@ export class Pinky extends Ghost {
  * - En el constructor toca el grupo y los materiales DESPUÉS del super(),
  *   que es quien los crea. Los materiales ya vienen clonados de Ghost.js, por
  *   eso se les puede bajar la opacidad sin afectar a la Pinky original.
- * - updateSpecial() está vacío a propósito: si no, cada clon clonaría a su
- *   vez y se llenaría la pantalla en segundos.
+ * - updateSpecial() hace que el clon también se duplique cada cloneEvery
+ *   segundos, pero se lo pide a owner.spawnClone(this): Pinky lleva la
+ *   cuenta y el tope de maxClones, si no se llenaría la pantalla en segundos.
  * - vanish() se llama desde Pinky.onDefeat(). Avisa a removeExtra() para
  *   salir de la lista de GhostManager antes de borrarse de la escena.
  * ------------------------------------------------------------------- */
@@ -165,6 +172,9 @@ export class PinkyClone extends Ghost {
         this.group.scale.setScalar(0.7);
         this.healthBar.visible = false;
         for (const m of this.materials) { m.transparent = true; m.opacity = 0.6; }
+
+        // El clon recién nacido espera un ciclo completo antes de duplicarse
+        this.specialCd = PINKY.cloneEvery;
     }
 
     getTargetTile() {
@@ -178,7 +188,12 @@ export class PinkyClone extends Ghost {
         return this.playerTile;
     }
 
-    updateSpecial() { /* los clones no clonan */ }
+    /** Los clones también se duplican. Pinky lleva la cuenta y el tope. */
+    updateSpecial() {
+        if (this.specialCd > 0) return;
+        this.specialCd = PINKY.cloneEvery;
+        this.owner?.spawnClone(this);
+    }
 
     vanish() {
         this.state = GHOST_STATE.DERROTADO;
