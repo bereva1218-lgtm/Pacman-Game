@@ -275,9 +275,18 @@ export class Ghost {
             this.defeat();
             return true;
         }
-        this.stun(0.6); // se frena un momento: el jugador ve que le pegó
+        this.placeAt(this.spawnTile);
+        this.forcedDir = null;
+        this.state = GHOST_STATE.PERSEGUIR;
+        this.speedMul = 1;
+        this.resetColor();
+        this.onDamage();
+        this.pickNextTile();
         return true;
     }
+
+    /** Reinicia el ataque especial de cada tipo al recibir un impacto. */
+    onDamage() { }
 
     stun(seconds) {
         if (this.state === GHOST_STATE.DERROTADO) return;

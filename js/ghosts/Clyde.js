@@ -144,6 +144,11 @@ export class Clyde extends Ghost {
         super.pickNextTile();
     }
 
+    onDamage() {
+        this.warning = 0;
+        this.specialCd = CLYDE.swapEvery;
+    }
+
     /* -----------------------------------------------------------------
      * ------------- ATAQUE ESPECIAL: EL INTERCAMBIO -------------------
      * -----------------------------------------------------------------

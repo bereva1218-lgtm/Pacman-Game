@@ -132,6 +132,11 @@ export class Blinky extends Ghost {
     /** Chocó con una pared: ahí termina la embestida */
     onForcedDirBlocked() { this.endDash(); }
 
+    onDamage() {
+        this.endDash();
+        this.specialCd = BLINKY.dashCooldown;
+    }
+
     stun(seconds) {
         this.endDash();
         super.stun(seconds);

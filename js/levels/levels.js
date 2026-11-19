@@ -40,7 +40,7 @@ export const LEVELS = [
         itemSpawns: [{ col: 1, row: 19 }, { col: 19, row: 19 }, { col: 3, row: 13 }, { col: 17, row: 13 }],
         fakeCount: 2,
         hintCount: 2,
-        ghostSpawn: { col: 1, row: 7 },
+        ghostSpawn: { col: 10, row: 10 },
         tip: 'Invisible, ella no te persigue. Acércate por detrás.',
     },
     {
@@ -55,7 +55,7 @@ export const LEVELS = [
         itemSpawns: [{ col: 1, row: 7 }, { col: 19, row: 7 }, { col: 7, row: 17 }, { col: 13, row: 17 }],
         fakeCount: 3,
         hintCount: 2,
-        ghostSpawn: { col: 19, row: 15 },
+        ghostSpawn: { col: 10, row: 10 },
         tip: 'El escudo bloquea sus proyectiles. Atácalo mientras dure.',
     },
     {

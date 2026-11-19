@@ -131,6 +131,13 @@ export class Pinky extends Ghost {
         for (const c of this.clones) c.vanish();
         this.clones = [];
     }
+
+    onDamage() {
+        for (const c of this.clones) c.vanish();
+        this.clones = [];
+        this.specialCd = PINKY.cloneEvery;
+        this.patrolTarget = null;
+    }
 }
 
 /* ---------------------------------------------------------------------

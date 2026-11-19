@@ -206,4 +206,13 @@ export class Inky extends Ghost {
         for (const p of this.projectiles) p.dispose();
         this.projectiles = [];
     }
+
+    onDamage() {
+        for (const p of this.projectiles) p.dispose();
+        this.projectiles = [];
+        this.specialCd = INKY.teleportEvery;
+        this.shootCd = INKY.shootEvery;
+        this.warning = 0;
+        this.fleeTarget = null;
+    }
 }
