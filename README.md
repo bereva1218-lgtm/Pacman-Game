@@ -12,7 +12,7 @@ Juego 3D tipo *escape room* inspirado en Pac-Man, hecho con **Three.js**. En cad
 
 ## 🎯 Opción elegida
 
-**[completar: nombre de la opción del enunciado]**: Pac-Man Escape Room 3D. Son 4 niveles con un fantasma distinto cada uno y un nivel final con jefe.
+Pac-Man Escape Room 3D. Son 4 niveles con un fantasma distinto cada uno y un nivel final con jefe.
 
 | Nivel | Fantasma | Poder | Golpes para vencerlo | Tiempo |
 |-------|----------|-------|----------------------|--------|
