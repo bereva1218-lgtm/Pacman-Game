@@ -69,6 +69,7 @@ export class DebugTools {
             position: 'fixed', top: '8px', left: '8px', margin: 0, padding: '8px 10px',
             font: '12px/1.4 monospace', color: '#fff', background: 'rgba(0,0,0,.6)',
             borderRadius: '6px', pointerEvents: 'none', zIndex: 10,
+            display: 'none',   // panel de texto oculto (la lógica sigue funcionando)
         });
         document.body.appendChild(this.panel);
 

@@ -19,6 +19,7 @@ import { EVENTS, CONFIG, ghostName } from '../config.js';
 import { STATES } from '../core/GameState.js';
 import { LEVELS, ESCAPE_TIME } from '../levels/levels.js';
 import { KEY_COLORS, KEY_SVG, restartAnim } from './HUD.js';
+import { TitleModels } from './TitleModels.js';
 
 const DEFAULT_CONTROLS = [
   ['FLECHAS / WASD', 'Moverse'],
@@ -34,31 +35,6 @@ const GHOST_SVG = `
   <circle cx="8.5" cy="13" r="2.2" fill="#0b0614"/><circle cx="15.5" cy="13" r="2.2" fill="#0b0614"/>
 </svg>`;
 
-const MANSION_SVG = `
-<svg class="scr-mansion" viewBox="0 0 320 170" aria-hidden="true">
-  <circle class="scr-moon" cx="258" cy="38" r="22"/>
-  <g fill="#06020d">
-    <rect x="72" y="70" width="9" height="22"/>
-    <polygon points="48,170 48,104 86,76 124,104 124,170"/>
-    <polygon points="196,170 196,104 234,76 272,104 272,170"/>
-    <rect x="116" y="62" width="88" height="108"/>
-    <polygon points="108,64 160,24 212,64"/>
-    <rect x="152" y="14" width="16" height="22"/>
-    <polygon points="148,16 160,0 172,16"/>
-    <rect x="0" y="164" width="320" height="6"/>
-  </g>
-  <g class="scr-windows">
-    <rect x="62" y="114" width="10" height="14"/><rect x="98" y="114" width="10" height="14" class="off"/>
-    <rect x="62" y="140" width="10" height="14" class="off"/><rect x="98" y="140" width="10" height="14"/>
-    <rect x="132" y="80" width="12" height="16"/><rect x="176" y="80" width="12" height="16" class="off"/>
-    <rect x="132" y="110" width="12" height="16" class="off"/><rect x="176" y="110" width="12" height="16"/>
-    <rect x="212" y="114" width="10" height="14" class="off"/><rect x="248" y="114" width="10" height="14"/>
-    <rect x="212" y="140" width="10" height="14"/><rect x="248" y="140" width="10" height="14" class="off"/>
-    <circle cx="160" cy="46" r="5"/>
-  </g>
-  <path d="M150 170v-26a10 10 0 0 1 20 0v26z" fill="#1a0f2e"/>
-</svg>`;
-
 export class Screens {
   /**
    * Recibe el mismo `ctx` de main.js (usa bus y gameState) más el hud.
@@ -69,8 +45,8 @@ export class Screens {
    * @param {Array}  [o.controls]     lista [tecla, acción] para la pantalla de título
    * @param {HTMLElement} [o.container=document.body]
    */
-  constructor({ bus, gameState, hud = null, controls = DEFAULT_CONTROLS, container = document.body }) {
-    Object.assign(this, { bus, gameState, hud, controls });
+  constructor({ bus, gameState, assets = null, hud = null, controls = DEFAULT_CONTROLS, container = document.body }) {
+    Object.assign(this, { bus, gameState, hud, controls, assets });
 
     this.elapsed = 0;         // tiempo total de la partida (para la pantalla de victoria)
     this.escape = false;      // ¿ya se abrió la salida?
@@ -109,6 +85,7 @@ export class Screens {
 
   destroy() {
     cancelAnimationFrame(this._raf);
+    this.models?.destroy();
     this.root.remove();
   }
 
@@ -253,6 +230,7 @@ export class Screens {
     for (const key of ['title', 'pause', 'gameover', 'win']) {
       this.el[key].classList.toggle('scr-overlay--show', key === name);
     }
+    if (name === 'title') this.models?.start(); else this.models?.stop();
   }
 
   _fillGameOver() {
@@ -295,11 +273,10 @@ export class Screens {
       <section class="scr-overlay scr-title" data-el="title">
         <div class="scr-fog"></div>
         <div class="scr-scene">
-          ${MANSION_SVG}
-          <span class="scr-float-ghost">${GHOST_SVG}</span>
+          <span data-el="models"></span>
         </div>
-        <span class="scr-kicker">PAC-MAN</span>
-        <h1 class="scr-h1">HAUTED MANSION </h1>
+        <span class="scr-kicker">SCAPE-ROOM</span>
+        <h1 class="scr-h1">HAUNTED MANSION </h1>
         <h2 class="scr-h2">— ESCAPA DE LA MANSIÓN —</h2>
         <p class="scr-story">Cuatro fantasmas guardan las llaves de la salida.<br>Encuentra lo que los debilita, enfréntalos y escapa.</p>
         <button class="scr-btn" data-el="startBtn">PRESIONA ENTER</button>
@@ -343,6 +320,12 @@ export class Screens {
       this.el[b].addEventListener('click', () => this._start()));
 
     container.appendChild(this.root);
+
+    // Modelos 3D del juego en la pantalla de título (en vez de la mansión)
+    this.models = null;
+    if (this.assets) {
+      try { this.models = new TitleModels(this.el.models.parentElement, this.assets); } catch { /* sin WebGL */ }
+    }
   }
 }
 

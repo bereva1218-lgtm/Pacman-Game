@@ -4,7 +4,7 @@
 o 
 
 # material
-mtllib Wall.vox.mtl
+mtllib wall.vox.mtl
 usemtl palette
 
 # normals
@@ -17,7 +17,7 @@ vn 0 1 0
 
 # texcoords
 vt 0.619141 0.5
-vt 0.662109 0.5
+vt 0.767578 0.5
 
 # verts
 v -2 0 2
